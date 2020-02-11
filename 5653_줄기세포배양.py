@@ -1,4 +1,3 @@
-#dictionary 사용법 찾아가지고 마무리 짓기
 from heapq import*
 
 MAX=650
@@ -12,23 +11,34 @@ for t in range(int(input())):
     for i in range(n):
         for j in range(m):
             check[sx+i][sy+j]=1
-            heappush(pq,[a[i][j], i, j])
+            heappush(pq,[a[i][j], i, j, 1]) #마지막 1이면 활성 예정
     for _ in range(k):
-        dic={}
+        dic={};temp=[]
         for i in range(len(pq)):
-            pq[i][0]-=1
-            if pq[i][0] == 0:
-                v, x, y = heappop(pq)
+            if pq[i][0]-1 == 0:
+                pq[i][0]-=1
+                v, x, y, h = heappop(pq)
+                temp.append((x, y))
+                if h==0: continue
                 for dx, dy in dd:
                     nx, ny = x+dx, y+dy
                     if nx<0 or ny<0 or nx>n-1 or ny>m-1 or check[nx][ny]==1: continue
                     if check[nx][ny]==0:    #0안옴, 1활성or완료, 2대기
                         check[nx][ny]=2
-                        #사전에 추가
+                        dic[(nx,ny)]=a[nx][ny]
                     elif check[nx][ny]==2:
-                        #사전에 추가된거 바꿔 dic=(nx,ny):a[nx][ny]
-        for j in range(len(dic)):#사전 전부
-            #heappush(pq,[(,,)]) 사전에서 a[nx][ny], nx, ny꺼내 저장
-    print("#{} {}".format(t+1, len(pq)))
+                        if dic.get((nx,ny)) < a[nx][ny]:
+                            dic[(nx,ny)] = a[nx][ny]
+            else:
+                for j in range(len(pq)):
+                    pq[j][0]-=1
+                break
 
+        for key, v in dic.items():
+            nx, ny = key
+            check[nx][ny]=1
+            heappush(pq,[v, nx, ny, 1])
+        for x, y in temp:
+            heappush(pq,(a[x][y], x, y, 0))
+    print("#{} {}".format(t+1, len(pq)))
 
