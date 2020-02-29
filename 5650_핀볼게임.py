@@ -1,3 +1,4 @@
+'''
 from collections import*
 
 dd=[(-1,0),(0,1),(1,0),(0,-1)]
@@ -64,3 +65,48 @@ for t in range(int(input())):
                     temp = bfs(i, j, k)
                     res = max(res, temp)
     print('#{} {}'.format(t+1,res))
+'''
+#이게 더 깔끔
+from collections import*
+dd=[(-1,0), (0,1), (1,0), (0, -1)]  #URDL
+reflex=[[0,0,0,0],
+        [2,3,1,0],      #1
+        [1,3,0,2],      #2
+        [3,2,0,1],      #3
+        [2,0,3,1],      #4
+        [2,3,0,1]]      #5, 범위 밖
+def travel(x, y, d):
+    dx, dy = dd[d]
+    nx, ny = x+dx, y+dy
+    score=0
+    while 1:
+        if nx<0 or ny<0 or nx>n-1 or ny>n-1:
+            nx, ny = nx-dx, ny-dy; score+=1; d=reflex[5][d]
+        if a[nx][ny]==-1 or (nx==x and ny == y): return score       #블랙홀 or 제자리
+        if 1<= a[nx][ny] <=5:
+            score+=1
+            d = reflex[a[nx][ny]][d]
+        elif 6<= a[nx][ny] <=10:
+            for tx, ty in warm[a[nx][ny]]:
+                if not(tx==nx and ty==ny):
+                    nx, ny = tx, ty
+                    break
+        dx, dy = dd[d]
+        nx, ny = nx+dx, ny+dy
+
+for t in range(int(input())):
+    n=int(input())
+    a=[list(map(int,input().split()))for _ in range(n)]
+    ans=0
+    #웜홀 처리만 해줌 될듯, 블랙홀, 반사된느곳은 그때그때 정하고
+    warm=[[]for _ in range(11)]
+    for i in range(n):
+        for j in range(n):
+            if 6<= a[i][j] <=10:
+                warm[a[i][j]].append((i,j))
+    for i in range(n):
+        for j in range(n):
+            if not a[i][j]:
+                for d in range(4):
+                    ans = max(ans, travel(i,j,d))
+    print('#{} {}'.format(t+1, ans))
