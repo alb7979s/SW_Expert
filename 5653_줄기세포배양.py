@@ -1,49 +1,43 @@
-from heapq import*
+#1. X시간동안 비활성
+#2. X시간 지나는 순간 활성 => 활성 되는 순간 4방향 번식(이미 있음 번식x, 동시=> 생명력 높은 아이로)
+#3. X시간 후 죽음
 
-MAX=650
-dd=[(-1,0),(0,1),(0,-1),(1,0)]
-for t in range(int(input())):
-    check = [[0] * 651 for _ in range(651)]
-    n,m,k=map(int,input().split())
-    a=[list(map(int,input().split()))for _ in range(n)]
-    sx=MAX//2 - n//2; sy=MAX//2 - m//2
-    pq=[]
-    for i in range(n):          #초기값 배열에
+#2번 할람 activeList 따로 처리 해주고 visit도 이 때 처리해줘야할듯
+#1번 살아있는 세포들 생명력은 heapq로 처리해줄수 있을듯 (현재생명력, 활성상태, x, y, 생명력크기)
+from heapq import*
+for tc in range(int(input())):
+    n, m, k = map(int,input().split())  #열, 행, k초
+    aliveList=[]
+    visit={}
+    for i in range(n):
+        a=list(map(int,input().split()))
         for j in range(m):
-            if a[i][j]:
-                check[sx+i][sy+j]=1
-                heappush(pq,[a[i][j], a[i][j], sx+i, sy+j, 1]) #마지막 1이면 활성 예정
-    for _ in range(k):
-        dic={};temp=[]
-        for i in range(len(pq)):
-            time, v, x, y, h = heappop(pq)
-            if time > 0:
-                heappush(pq,[time, v, x, y, h])
-                for j in range(len(pq)):    #시간 남는애들 시간 -1해줌
-                    pq[j][0]-=1
+            if a[j]:
+                heappush(aliveList, (a[j], 0, i, j, a[j]))
+                visit[i, j] = 1
+    for t in range(1, k+1):
+        activeList={}
+        #생명력 비교
+        while aliveList:
+            cur, f, x, y, life = heappop(aliveList)
+            if cur > t:
+                heappush(aliveList, (cur, f, x, y, life))
                 break
-            if h == 0:      #죽는 세포면
-                check[x][y]=1
-                continue
-            temp.append((v, x, y)) #활성화 된거 나중에 마지막0으로 해서 추가해줘야함
-            for dx, dy in dd:   #네방향 번식
-                nx, ny = x+dx, y+dy
-                if nx<0 or ny<0 or nx>650 or ny>650 or check[nx][ny]==1: continue
-                if check[nx][ny]==0:    #0안옴, 1활성or완료, 2대기
-                    check[nx][ny]=2
-                    dic[(nx,ny)] = v
-                elif check[nx][ny]==2:
-                    if dic.get((nx,ny)) < v:
-                        dic[(nx,ny)] = v
-        for key, v in dic.items():
-            nx, ny = key
-            check[nx][ny]=1
-            heappush(pq,[v, v, nx, ny, 1])
-        for v, x, y in temp:
-            heappush(pq,[v, v, x, y, 0])
-        res=len(pq)
-        for i in range(len(pq)):
-            if pq[i][0] == 0 and pq[i][-1] == 0:
-                res-=1
-        print(res)
-    print("#{} {}".format(t+1, res))
+            else:
+                if not f:   #비활성이면 활성으로
+                    heappush(aliveList, (life+t, 1, x, y, life))
+                    for dx, dy in [(0, 1), (0, -1), (-1, 0), (1, 0)]:
+                        nx, ny = x+dx, y+dy
+                        if (nx, ny) in visit: continue
+                        if (nx, ny) in activeList:
+                            activeList[nx, ny] = max(activeList[nx, ny], life)
+                        else:
+                            activeList[nx, ny] = life
+        # print(len(aliveList))
+        # print(len(activeList))
+        if t==k: continue           #마지막 추가 해주는거 때문에 틀린답 나왔었음
+        for [x, y], life in activeList.items():
+            visit[x, y] = 1
+            heappush(aliveList, (t+life+1, 0, x, y, life))
+    print('#{} {}'.format(tc+1, len(aliveList)))
+
